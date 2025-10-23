@@ -6,29 +6,29 @@ const INITIAL_SYSTEM_MESSAGE = ``;
 class ChatUI {
     constructor() {
         // Grab references
-        this.messagesContainer     = document.getElementById('chatMessages');
-        this.inputField            = document.getElementById('chatInput');
-        this.sendButton            = document.getElementById('sendMessage');
-        this.inspectorButton       = document.getElementById('inspectorButton');
-        this.resetButton           = document.getElementById('resetChat');
-        this.runTestButton         = document.getElementById('runTestButton');
-        this.pushAndRunButton      = document.getElementById('pushAndRunButton');
+        this.messagesContainer = document.getElementById('chatMessages');
+        this.inputField = document.getElementById('chatInput');
+        this.sendButton = document.getElementById('sendMessage');
+        this.inspectorButton = document.getElementById('inspectorButton');
+        this.resetButton = document.getElementById('resetChat');
+        this.runTestButton = document.getElementById('runTestButton');
+        this.pushAndRunButton = document.getElementById('pushAndRunButton');
 
         // Language / Browser dropdown
 
         // Language / Browser dropdown
         this.languageBindingSelect = document.getElementById('languageBinding');
-        this.browserEngineSelect   = document.getElementById('browserEngine');
+        this.browserEngineSelect = document.getElementById('browserEngine');
 
         // Additional states
-        this.selectedDomContent    = null;
-        this.isInspecting          = false;
-        this.markdownReady         = false;
-        this.codeGeneratorType     = 'SELENIUM_JAVA_PAGE_ONLY'; // default 
+        this.selectedDomContent = null;
+        this.isInspecting = false;
+        this.markdownReady = false;
+        this.codeGeneratorType = 'SELENIUM_JAVA_PAGE_ONLY'; // default 
         this.tokenWarningThreshold = 10000;
-        this.selectedModel         = '';
-        this.selectedProvider      = '';
-        this.generatedCode         = '';
+        this.selectedModel = '';
+        this.selectedProvider = '';
+        this.generatedCode = '';
 
         // Clear existing messages + add initial system message
         this.messagesContainer.innerHTML = `
@@ -53,13 +53,13 @@ class ChatUI {
                 this.addMessage(INITIAL_SYSTEM_MESSAGE, 'system');
                 this.selectedDomContent = null;
                 this.generatedCode = '';
-                this.inspectorButton.classList.remove('has-content','active');
+                this.inspectorButton.classList.remove('has-content', 'active');
                 this.inspectorButton.innerHTML = `
                     <i class="fas fa-mouse-pointer"></i>
                     <span>Inspect</span>
                 `;
                 this.isInspecting = false;
-                
+
                 // Hide all action buttons
                 if (this.runTestButton) this.runTestButton.style.display = 'none';
             });
@@ -67,22 +67,22 @@ class ChatUI {
 
         // Load stored keys
         chrome.storage.sync.get(
-          ['groqApiKey','openaiApiKey','testleafApiKey','selectedModel','selectedProvider'],
-          (result) => {
-            if (result.groqApiKey)   this.groqAPI   = new GroqAPI(result.groqApiKey);
-            if (result.openaiApiKey) this.openaiAPI = new OpenAIAPI(result.openaiApiKey);
-            if (result.testleafApiKey) this.testleafAPI = new TestleafAPI(result.testleafApiKey);
+            ['groqApiKey', 'openaiApiKey', 'testleafApiKey', 'selectedModel', 'selectedProvider'],
+            (result) => {
+                if (result.groqApiKey) this.groqAPI = new GroqAPI(result.groqApiKey);
+                if (result.openaiApiKey) this.openaiAPI = new OpenAIAPI(result.openaiApiKey);
+                if (result.testleafApiKey) this.testleafAPI = new TestleafAPI(result.testleafApiKey);
 
-            this.selectedModel    = result.selectedModel    || '';
-            this.selectedProvider = result.selectedProvider || '';
-        });
+                this.selectedModel = result.selectedModel || '';
+                this.selectedProvider = result.selectedProvider || '';
+            });
 
         // Listen for changes
         chrome.storage.onChanged.addListener((changes) => {
-            if (changes.groqApiKey)       this.groqAPI   = new GroqAPI(changes.groqApiKey.newValue);
-            if (changes.openaiApiKey)     this.openaiAPI = new OpenAIAPI(changes.openaiApiKey.newValue);
-            if (changes.testleafApiKey)   this.testleafAPI = new TestleafAPI(changes.testleafApiKey.newValue);
-            if (changes.selectedModel)    this.selectedModel = changes.selectedModel.newValue;
+            if (changes.groqApiKey) this.groqAPI = new GroqAPI(changes.groqApiKey.newValue);
+            if (changes.openaiApiKey) this.openaiAPI = new OpenAIAPI(changes.openaiApiKey.newValue);
+            if (changes.testleafApiKey) this.testleafAPI = new TestleafAPI(changes.testleafApiKey.newValue);
+            if (changes.selectedModel) this.selectedModel = changes.selectedModel.newValue;
             if (changes.selectedProvider) this.selectedProvider = changes.selectedProvider.newValue;
         });
 
@@ -152,23 +152,23 @@ class ChatUI {
     initializeMarkdown() {
         const checkLibraries = setInterval(() => {
             if (window.marked && window.Prism) {
-                
+
                 window.marked.setOptions({
                     highlight: (code, lang) => {
                         // Normalize language name
                         let normalizedLang = lang?.toLowerCase().trim();
-                        
+
                         // Map common language aliases
                         const languageMap = {
                             'feature': 'gherkin',
                             'cucumber': 'gherkin',
                             'bdd': 'gherkin'
                         };
-                        
+
                         if (languageMap[normalizedLang]) {
                             normalizedLang = languageMap[normalizedLang];
                         }
-                        
+
                         if (normalizedLang && Prism.languages[normalizedLang]) {
                             try {
                                 return Prism.highlight(code, Prism.languages[normalizedLang], normalizedLang);
@@ -184,59 +184,59 @@ class ChatUI {
                     gfm: true
                 });
                 const renderer = new marked.Renderer();
-            renderer.code = (code, language) => {
-                console.log('🎨 Rendering code block:', { language, codeLength: code?.length });
-                
-                if (typeof code === 'object') {
-                    if (code.text) {
-                        code = code.text;
-                    } else if (code.raw) {
-                        code = code.raw.replace(/^```[\\w]*\\n/, '').replace(/\\n```$/, '');
+                renderer.code = (code, language) => {
+                    console.log('🎨 Rendering code block:', { language, codeLength: code?.length });
+
+                    if (typeof code === 'object') {
+                        if (code.text) {
+                            code = code.text;
+                        } else if (code.raw) {
+                            code = code.raw.replace(/^```[\\w]*\\n/, '').replace(/\\n```$/, '');
+                        } else {
+                            code = JSON.stringify(code, null, 2);
+                        }
+                    }
+
+                    // Normalize language name
+                    let validLanguage = language?.toLowerCase().trim() || 'typescript';
+                    console.log('Original language:', language, '-> Normalized:', validLanguage);
+
+                    // Map common language aliases
+                    const languageMap = {
+                        'feature': 'gherkin',
+                        'cucumber': 'gherkin',
+                        'bdd': 'gherkin',
+                        'js': 'javascript',
+                        'ts': 'typescript',
+                        'py': 'python',
+                        'cs': 'csharp'
+                    };
+
+                    if (languageMap[validLanguage]) {
+                        console.log('Language mapped:', validLanguage, '->', languageMap[validLanguage]);
+                        validLanguage = languageMap[validLanguage];
+                    }
+
+                    let highlighted = code;
+
+                    // Check if Prism language is available
+                    if (validLanguage && Prism.languages[validLanguage]) {
+                        try {
+                            console.log('Highlighting with Prism for language:', validLanguage);
+                            highlighted = Prism.highlight(code, Prism.languages[validLanguage], validLanguage);
+                            console.log('✅ Highlighting successful');
+                        } catch (e) {
+                            console.error('❌ Highlighting failed for', validLanguage, ':', e);
+                            highlighted = code;
+                        }
                     } else {
-                        code = JSON.stringify(code, null, 2);
+                        console.warn('⚠️ Language not supported by Prism:', validLanguage);
                     }
-                }
-                
-                // Normalize language name
-                let validLanguage = language?.toLowerCase().trim() || 'typescript';
-                console.log('Original language:', language, '-> Normalized:', validLanguage);
-                
-                // Map common language aliases
-                const languageMap = {
-                    'feature': 'gherkin',
-                    'cucumber': 'gherkin',
-                    'bdd': 'gherkin',
-                    'js': 'javascript',
-                    'ts': 'typescript',
-                    'py': 'python',
-                    'cs': 'csharp'
+
+                    const result = `<pre class=\"language-${validLanguage}\"><code class=\"language-${validLanguage}\">${highlighted}</code></pre>`;
+                    console.log('Final HTML classes:', `language-${validLanguage}`);
+                    return result;
                 };
-                
-                if (languageMap[validLanguage]) {
-                    console.log('Language mapped:', validLanguage, '->', languageMap[validLanguage]);
-                    validLanguage = languageMap[validLanguage];
-                }
-                
-                let highlighted = code;
-                
-                // Check if Prism language is available
-                if (validLanguage && Prism.languages[validLanguage]) {
-                    try {
-                        console.log('Highlighting with Prism for language:', validLanguage);
-                        highlighted = Prism.highlight(code, Prism.languages[validLanguage], validLanguage);
-                        console.log('✅ Highlighting successful');
-                    } catch (e) {
-                        console.error('❌ Highlighting failed for', validLanguage, ':', e);
-                        highlighted = code;
-                    }
-                } else {
-                    console.warn('⚠️ Language not supported by Prism:', validLanguage);
-                }
-                
-                const result = `<pre class=\"language-${validLanguage}\"><code class=\"language-${validLanguage}\">${highlighted}</code></pre>`;
-                console.log('Final HTML classes:', `language-${validLanguage}`);
-                return result;
-            };
                 window.marked.setOptions({ renderer });
                 this.markdownReady = true;
                 clearInterval(checkLibraries);
@@ -255,10 +255,10 @@ class ChatUI {
             const match = content.match(/^```(\w+)/);
             textContent = content.replace(/^```\w+/, '```');
         } else if (typeof content === 'object') {
-            textContent = content.content || 
-                         content.message?.content ||
-                         content.choices?.[0]?.message?.content ||
-                         JSON.stringify(content, null, 2);
+            textContent = content.content ||
+                content.message?.content ||
+                content.choices?.[0]?.message?.content ||
+                JSON.stringify(content, null, 2);
         } else {
             textContent = String(content);
         }
@@ -295,12 +295,12 @@ class ChatUI {
             };
             window.marked.setOptions({ renderer });
             const parsed = window.marked.parse(processedContent);
-            
+
             // Apply syntax highlighting after DOM is updated
             setTimeout(() => {
                 const codeBlocks = document.querySelectorAll('pre code[class*="language-"]');
                 console.log('📝 Post-parse highlighting for', codeBlocks.length, 'code blocks');
-                
+
                 codeBlocks.forEach((block, index) => {
                     // Standard Prism highlighting for all languages
                     try {
@@ -310,7 +310,7 @@ class ChatUI {
                     }
                 });
             }, 100);
-            
+
             return parsed;
         } catch (error) {
             console.error('Markdown parsing error:', error);
@@ -328,13 +328,13 @@ class ChatUI {
         let apiRef = null;
         this.isInspecting = false;
         this.updateInspectorButtonState();
-      
+
         if (this.selectedProvider === 'groq') apiRef = this.groqAPI;
         else if (this.selectedProvider === 'openai') apiRef = this.openaiAPI;
         else apiRef = this.testleafAPI;
         if (!apiRef) {
-          this.addMessage(`Please set your ${this.selectedProvider} API key in the Settings tab.`, 'system');
-          return;
+            this.addMessage(`Please set your ${this.selectedProvider} API key in the Settings tab.`, 'system');
+            return;
         }
 
         if (!this.selectedDomContent) {
@@ -413,7 +413,7 @@ class ChatUI {
             });
 
             this.selectedDomContent = null;
-            this.inspectorButton.classList.remove('has-content','active');
+            this.inspectorButton.classList.remove('has-content', 'active');
             this.inspectorButton.innerHTML = `
                 <i class="fas fa-mouse-pointer"></i>
                 <span>Inspect</span>
@@ -439,7 +439,7 @@ class ChatUI {
             this.sendButton.innerHTML = 'Generate';
         }
     }
-      
+
 
     // ==============
     // addMessage UI
@@ -532,7 +532,7 @@ class ChatUI {
             this.resetButton.classList.add('visible');
         }
     }
-    
+
     updateInspectorButtonState() {
         if (this.isInspecting) {
             this.inspectorButton.classList.add('active');
@@ -552,6 +552,7 @@ class ChatUI {
         }
     }
 
+    /*
     getPromptKeys(language, engine) {
         const checkboxes = Array.from(document.querySelectorAll('input[name="javaGenerationMode"]:checked'));
         const promptKeys = [];
@@ -561,10 +562,9 @@ class ChatUI {
         // Extract selected generation modes
         const isFeatureChecked = checkboxes.some(box => box.value === 'FEATURE');
         const isPageChecked = checkboxes.some(box => box.value === 'PAGE');
-        const isTestDataGenerator= checkboxes.some(box => box.value === 'TEST_DATA_GENERATOR');
 
         // Validate that at least one option is selected
-        if (!isFeatureChecked && !isPageChecked && !isTestDataGenerator) {
+        if (!isFeatureChecked && !isPageChecked) {
             console.warn('No generation mode selected. Defaulting to Page Object generation.');
             // Default fallback to page object generation
             if (this.isJavaSelenium(lang, eng)) {
@@ -574,7 +574,7 @@ class ChatUI {
         }
 
         // Generate appropriate prompt keys based on selections and language/engine combination
-        if (isFeatureChecked && isPageChecked && isTestDataGenerator) {
+        if (isFeatureChecked && isPageChecked) {
             // Both feature and page selected - generate combined output
             if (this.isJavaSelenium(lang, eng)) {
                 promptKeys.push('CUCUMBER_WITH_SELENIUM_JAVA_STEPS');
@@ -590,40 +590,107 @@ class ChatUI {
             // Page object only
             if (this.isJavaSelenium(lang, eng)) {
                 promptKeys.push('SELENIUM_JAVA_PAGE_ONLY');
-            } else if (this.isTypeScriptPlaywright(lang, eng)) {
-                // Playwright + TypeScript page object
-                promptKeys.push('PLAYWRIGHT_TYPESCRIPT_PAGE_ONLY');
-            } else {
-                this.addUnsupportedLanguageMessage(lang, eng);
-            }
-        }
-            else if (isTestDataGenerator) {
-            // TestDatagenerator only
-            if (this.isJavaSelenium(lang, eng)) {
-                promptKeys.push('SELENIUM_JAVA_PAGE_ONLY');
-            } else if (this.isTypeScriptPlaywright(lang, eng)) {
-                // Playwright + TypeScript page object
-                promptKeys.push('PLAYWRIGHT_TYPESCRIPT_PAGE_ONLY');
             } else {
                 this.addUnsupportedLanguageMessage(lang, eng);
             }
         }
 
         return promptKeys;
+    }*/
+
+    getPromptKeys(language, engine) {
+        const checkboxes = Array.from(document.querySelectorAll('input[name="javaGenerationMode"]:checked'));
+        const promptKeys = [];
+        const lang = language?.toLowerCase() || '';
+        const eng = engine?.toLowerCase() || '';
+
+        // Extract selected generation modes
+        const isFeatureChecked = checkboxes.some(box => box.value === 'FEATURE');
+        const isPageChecked = checkboxes.some(box => box.value === 'PAGE');
+        const isTestDataChecked = checkboxes.some(box => box.value === 'TESTDATA');
+
+        // Validate that at least one option is selected
+        if (!isFeatureChecked && !isPageChecked && !isTestDataChecked) {
+            console.warn('No generation mode selected. Defaulting to Page Object generation.');
+            // Default fallback to page object generation
+            if (this.isJavaSelenium(lang, eng)) {
+                promptKeys.push('SELENIUM_JAVA_PAGE_ONLY');
+            }
+            return promptKeys;
+        }
+        // Generate appropriate prompt keys based on selections and language/engine combination
+        if (isFeatureChecked && isPageChecked && isTestDataChecked) {
+            // All three selected - generate combined output
+            if (this.isJavaSelenium(lang, eng)) {
+                promptKeys.push('CUCUMBER_WITH_SELENIUM_JAVA_STEPS');
+                promptKeys.push('TEST_DATA_FOR_SELENIUM_PAGE');
+            } else if (this.isTypeScriptPlaywright(lang, eng)) {
+                // Need to handle Playwright + Cucumber + Test Data
+                //Need to create prompt for Playwright and Cucumeber
+                promptKeys.push('PLAYWRIGHT_FEATURE_FILE');
+                promptKeys.push('TEST_DATA_FOR_PLAYWRIGHT_PAGE');
+            } else {
+                // For non-Java/Selenium combinations, generate separately
+                promptKeys.push('CUCUMBER_ONLY');
+                promptKeys.push('TEST_DATA_FOR_FEATURE');
+                this.addUnsupportedLanguageMessage(lang, eng);
+            }
+        }
+        // Generate appropriate prompt keys based on selections and language/engine combination
+        if (isFeatureChecked && isPageChecked) {
+            // Both feature and page selected - generate combined output
+            if (this.isJavaSelenium(lang, eng)) {
+                promptKeys.push('CUCUMBER_WITH_SELENIUM_JAVA_STEPS');
+            } else {
+                // For non-Java/Selenium combinations, generate separately
+                promptKeys.push('CUCUMBER_ONLY');
+                this.addUnsupportedLanguageMessage(lang, eng);
+            }
+        } else if (isFeatureChecked && isTestDataChecked) {
+            // Feature file + test data
+            promptKeys.push('CUCUMBER_ONLY');
+            promptKeys.push('TEST_DATA_FOR_FEATURE');
+        }
+        else if (isPageChecked && isTestDataChecked) {
+            // Page object + test data
+            if (this.isJavaSelenium(lang, eng)) {
+                promptKeys.push('SELENIUM_JAVA_PAGE_ONLY');
+                promptKeys.push('TEST_DATA_FOR_SELENIUM_PAGE');
+            } else if (this.isTypeScriptPlaywright(lang, eng)) {
+                promptKeys.push('PLAYWRIGHT_FEATURE_FILE');
+                promptKeys.push('TEST_DATA_FOR_PLAYWRIGHT_PAGE');
+            } else {
+                this.addUnsupportedLanguageMessage(lang, eng);
+            }
+        }
+        else if (isFeatureChecked) {
+            // Feature file only
+            promptKeys.push('CUCUMBER_ONLY');
+        } else if (isPageChecked) {
+            // Page object only
+            if (this.isJavaSelenium(lang, eng)) {
+                promptKeys.push('SELENIUM_JAVA_PAGE_ONLY');
+            } else if (this.isTypeScriptPlaywright(lang, eng)) {
+                promptKeys.push('PLAYWRIGHT_FEATURE_FILE');
+            }
+            else {
+                this.addUnsupportedLanguageMessage(lang, eng);
+            }
+        } else if (isTestDataChecked) {
+            // Test data only
+            promptKeys.push('TEST_DATA_ONLY');
+        }
+
+        return promptKeys;
     }
+
+
 
     /**
      * Helper method to check if the combination is Java + Selenium
      */
     isJavaSelenium(language, engine) {
         return language === 'java' && engine === 'selenium';
-    }
-
-    /**
-     * Helper method to check if the combination is TypeScript + Playwright
-     */
-    isTypeScriptPlaywright(language, engine) {
-        return language === 'ts' && engine === 'playwright';
     }
 
     isCSharpSelenium(language, engine) {
@@ -634,6 +701,10 @@ class ChatUI {
         return language === 'python' && engine === 'selenium';
     }
 
+    isTypeScriptPlaywright(language, engine) {
+        return language === 'ts' && engine === 'playwright';
+    }
+
     // typescript/selenium not supported by the selenium webdriver
 
 
@@ -642,7 +713,7 @@ class ChatUI {
      * Helper method to show unsupported language/engine combination message
      */
     addUnsupportedLanguageMessage(language, engine) {
-        const message = `⚠️ ${language}/${engine} combination is not yet supported. Supported combinations: Java/Selenium (feature + page) and TypeScript/Playwright (page object).`;
+        const message = `⚠️ ${language}/${engine} combination is not yet supported. Only Java/Selenium is currently available.`;
         this.addMessage(message, 'system');
     }
 
@@ -664,7 +735,7 @@ class ChatUI {
         if (threshInput) {
             threshInput.value = this.tokenWarningThreshold;
             threshInput.addEventListener('change', async (e) => {
-                const val = parseInt(e.target.value,10);
+                const val = parseInt(e.target.value, 10);
                 if (val >= 100) {
                     this.tokenWarningThreshold = val;
                     await chrome.storage.sync.set({ tokenWarningThreshold: val });
@@ -689,9 +760,9 @@ class ChatUI {
                 </div>
             `;
             this.selectedDomContent = null;
-            this.isInspecting       = false;
-            this.markdownReady      = false;
-            this.inspectorButton.classList.remove('has-content','active');
+            this.isInspecting = false;
+            this.markdownReady = false;
+            this.inspectorButton.classList.remove('has-content', 'active');
             this.inspectorButton.innerHTML = `
                 <i class="fas fa-mouse-pointer"></i>
                 <span>Inspect</span>

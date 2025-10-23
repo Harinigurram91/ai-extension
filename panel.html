@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Fonts, styles, and prism/marked scripts -->
@@ -10,7 +11,7 @@
   <script src="lib/prism/prism-typescript.js"></script>
   <link href="lib/prism/prism-tomorrow.css" rel="stylesheet">
   <link href="src/styles/sidepanel.css" rel="stylesheet">
-  
+
   <!-- Apply appConfig colors immediately to prevent white flash -->
   <script src="src/scripts/init-colors.js" type="module"></script>
 </head>
@@ -29,33 +30,17 @@
         <div style="display: flex; flex-direction: column;">
           <div style="display: flex; gap: 16px;">
             <label>
-              <input 
-                type="checkbox" 
-                name="javaGenerationMode" 
-                id="javaGenModeFeature"
-                value="FEATURE"
-                checked
-              />
+              <input type="checkbox" name="javaGenerationMode" id="javaGenModeFeature" value="FEATURE" checked />
               Feature File
             </label>
             <label>
-              <input 
-                type="checkbox" 
-                name="javaGenerationMode" 
-                id="javaGenModePage"
-                value="PAGE"
-              />
+              <input type="checkbox" name="javaGenerationMode" id="javaGenModePage" value="PAGE" />
               Page Class
             </label>
             <label>
-              <input 
-                type="checkbox" 
-                name="javaGenerationMode" 
-                id="javaGenModeTESTDATA"
-                value="TEST_DATA_GENERATOR"
-              />
-              Test Data Generator
-              </label>
+              <input type="checkbox" name="javaGenerationMode" id="javaGenModeSteps" value="TESTDATA" />
+              Test Data
+
           </div>
         </div>
       </div>
@@ -82,7 +67,7 @@
           <textarea id="chatInput" placeholder="Provide additional information" rows="2"></textarea>
         </div>
         <div class="chat-bottom-container">
-          
+
           <div class="chat-input-container">
             <button id="inspectorButton" class="inspector-toggle">
               <i class="fas fa-mouse-pointer"></i>
@@ -100,7 +85,7 @@
     <!-- Settings Tab -->
     <div id="settingsTab" class="tab-content">
       <div class="settings-section">
-       
+
         <!-- Language Binding -->
         <div class="model-container">
           <label for="languageBinding">Language Binding</label>
@@ -111,7 +96,7 @@
             <option value="ts">TypeScript</option>
           </select>
         </div>
-        
+
         <!-- Browser Engine -->
         <div class="model-container">
           <label for="browserEngine">Browser Engine</label>
@@ -162,7 +147,7 @@
   <!-- Script references -->
   <!-- Initialize app configuration FIRST -->
   <script src="src/scripts/init-config.js" type="module"></script>
-  
+
   <script src="src/scripts/popup.js" type="module"></script>
   <script src="src/scripts/tabs.js"></script>
   <script src="src/scripts/api/groq-api.js"></script>
@@ -171,4 +156,5 @@
   <script src="src/scripts/api/testleaf-api.js"></script>
 
 </body>
+
 </html>
